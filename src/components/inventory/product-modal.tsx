@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -43,8 +42,8 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
     size: '',
     color: '',
     quantity: 0,
-    price: 0,
-    costPrice: 0,
+    price: undefined,
+    costPrice: undefined,
     description: '',
     imageUrl: '',
   });
@@ -64,8 +63,8 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
         size: '',
         color: '',
         quantity: 0,
-        price: 0,
-        costPrice: 0,
+        price: undefined,
+        costPrice: undefined,
         description: '',
         imageUrl: '',
       });
@@ -336,8 +335,8 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 min="0"
                 required
                 className="rounded-xl h-12 border-none shadow-sm bg-white"
-                value={formData.costPrice}
-                onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
+                value={formData.costPrice ?? ''}
+                onChange={(e) => setFormData({ ...formData, costPrice: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
               />
             </div>
             <div className="space-y-2">
@@ -349,8 +348,8 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 min="0"
                 required
                 className="rounded-xl h-12 border-none shadow-sm bg-white"
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                value={formData.price ?? ''}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? undefined : parseFloat(e.target.value) })}
               />
             </div>
           </div>
