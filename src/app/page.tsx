@@ -127,17 +127,6 @@ export default function InventoryApp() {
     }
   };
 
-  if (isUserLoading || !user) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-accent mx-auto" />
-          <p className="text-muted-foreground font-medium">Autenticando...</p>
-        </div>
-      </div>
-    );
-  }
-
   const salesOnly = (movements || []).filter(m => m.type === 'saída');
   
   const stats: InventoryStats = {
