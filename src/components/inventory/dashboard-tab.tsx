@@ -64,7 +64,7 @@ export function DashboardTab({ stats, products }: DashboardTabProps) {
               <div className="p-2 bg-green-50 text-accent rounded-lg">
                 <PiggyBank size={20} />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">Lucro Total Realizado</span>
+              <span className="text-xs font-medium text-muted-foreground">Lucro de Vendas</span>
             </div>
             <div className="text-3xl font-bold text-accent">
               {formatCurrency(stats.totalProfit)}
