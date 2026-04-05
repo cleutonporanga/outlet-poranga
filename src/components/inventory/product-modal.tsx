@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -32,12 +33,14 @@ interface ProductModalProps {
 }
 
 const SIZES = ["PP", "P", "M", "G", "GG", "38", "40", "42", "44", "46"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB permitido para seleção, mas será comprimido
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB para seleção do arquivo
 
 export function ProductModal({ isOpen, onClose, onSave, editingProduct }: ProductModalProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<Partial<Product>>({
+    sku: '',
     name: '',
+    brand: '',
     category: '',
     size: '',
     color: '',
@@ -58,7 +61,9 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
       setFormData(editingProduct);
     } else {
       setFormData({
+        sku: '',
         name: '',
+        brand: '',
         category: '',
         size: '',
         color: '',
@@ -93,7 +98,6 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
           let width = img.width;
           let height = img.height;
 
-          // Manter proporção
           if (width > height) {
             if (width > MAX_WIDTH) {
               height *= MAX_WIDTH / width;
@@ -111,7 +115,6 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
           const ctx = canvas.getContext('2d');
           ctx?.drawImage(img, 0, 0, width, height);
 
-          // Comprimir como JPEG com qualidade 0.7 para garantir que caiba no Firestore
           const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
           setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
           setIsProcessingImage(false);
@@ -177,7 +180,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] rounded-3xl p-6 bg-background max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] rounded-3xl p-6 bg-background max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-primary">
             {editingProduct ? 'Editar Produto' : 'Novo Produto'}
@@ -257,7 +260,29 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 <AlertCircle size={10} /> {imageError}
               </p>
             )}
-            <p className="text-[10px] text-muted-foreground">Otimização automática ativada (máx 10MB)</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="sku">Código do Produto (SKU)</Label>
+              <Input 
+                id="sku" 
+                placeholder="Ex: SKU-001"
+                className="rounded-xl h-12 border-none shadow-sm bg-white"
+                value={formData.sku}
+                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brand">Marca</Label>
+              <Input 
+                id="brand" 
+                placeholder="Ex: Nike, Zara..."
+                className="rounded-xl h-12 border-none shadow-sm bg-white"
+                value={formData.brand}
+                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -265,6 +290,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
             <Input 
               id="name" 
               required
+              placeholder="Ex: Camiseta Oversized"
               className="rounded-xl h-12 border-none shadow-sm bg-white"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}

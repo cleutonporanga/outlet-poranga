@@ -7,7 +7,9 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
+        "sku": { "type": "string", "description": "Código interno ou SKU do produto" },
         "name": { "type": "string" },
+        "brand": { "type": "string", "description": "Marca do produto" },
         "category": { "type": "string" },
         "size": { "type": "string" },
         "color": { "type": "string" },

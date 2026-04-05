@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -5,7 +6,7 @@ import { Product } from "@/lib/inventory-types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MoreVertical, Edit2, Trash2, AlertCircle, ShoppingBag, Image as ImageIcon, Package } from "lucide-react";
+import { Search, MoreVertical, Edit2, Trash2, AlertCircle, ShoppingBag, Image as ImageIcon, Package, Tag } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +29,11 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
   const categories = Array.from(new Set(products.map(p => p.category)));
 
   const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                          p.category.toLowerCase().includes(search.toLowerCase());
+    const searchLower = search.toLowerCase();
+    const matchesSearch = p.name.toLowerCase().includes(searchLower) || 
+                          p.category.toLowerCase().includes(searchLower) ||
+                          p.sku?.toLowerCase().includes(searchLower) ||
+                          p.brand?.toLowerCase().includes(searchLower);
     const matchesCategory = !filterCategory || p.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
@@ -41,7 +45,7 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
           <Input 
             className="pl-12 h-14 bg-slate-50 shadow-sm border-none rounded-2xl text-lg"
-            placeholder="Buscar por nome ou categoria..." 
+            placeholder="Buscar por nome, marca, código ou categoria..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -68,7 +72,6 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
         </div>
       </div>
 
-      {/* Grid Fluido com auto-fit */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 md:gap-8">
         {filteredProducts.length === 0 ? (
           <div className="col-span-full text-center py-32 text-muted-foreground">
@@ -97,11 +100,23 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
                       <AlertCircle size={14} /> ESTOQUE BAIXO
                     </div>
                   )}
+                  {product.brand && (
+                    <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded-lg text-[10px] font-bold backdrop-blur-sm">
+                      {product.brand}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="p-6 space-y-5">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1.5 flex-1 min-w-0 pr-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        {product.sku && (
+                          <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded uppercase">
+                            {product.sku}
+                          </span>
+                        )}
+                      </div>
                       <h3 className="font-bold text-xl leading-tight line-clamp-2 min-h-[3.5rem]">{product.name}</h3>
                       <p className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold">{product.category}</p>
                     </div>

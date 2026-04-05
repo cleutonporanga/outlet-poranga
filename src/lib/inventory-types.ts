@@ -1,3 +1,4 @@
+
 export type ProductVariation = {
   size: string;
   color: string;
@@ -5,7 +6,9 @@ export type ProductVariation = {
 
 export type Product = {
   id: string;
+  sku?: string;
   name: string;
+  brand?: string;
   category: string;
   size: string;
   color: string;
