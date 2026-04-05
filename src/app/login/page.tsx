@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUser, useAuth, initiateEmailSignIn, initiateEmailSignUp } from "@/firebase";
+import { useUser, useAuth, initiateEmailSignIn } from "@/firebase";
 import { Loader2, Store } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -17,7 +17,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,13 +33,8 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      if (isSignUp) {
-        initiateEmailSignUp(auth, email, password);
-        toast({ title: "Conta criada!", description: "Bem-vindo ao Outlet Multimarcas Poranga." });
-      } else {
-        initiateEmailSignIn(auth, email, password);
-        toast({ title: "Bem-vindo de volta!", description: "Acessando seu painel de controle." });
-      }
+      initiateEmailSignIn(auth, email, password);
+      toast({ title: "Bem-vindo de volta!", description: "Acessando seu painel de controle." });
     } catch (error: any) {
       toast({ 
         title: "Erro ao acessar", 
@@ -70,7 +64,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold text-primary">Outlet Multimarcas Poranga</CardTitle>
           <CardDescription>
-            {isSignUp ? 'Crie sua conta para gerenciar seu estoque' : 'Acesse seu painel de controle de vendas'}
+            Acesse seu painel de controle de vendas
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -105,15 +99,7 @@ export default function LoginPage() {
               className="w-full h-12 rounded-xl font-bold bg-accent hover:bg-accent/90"
               disabled={isLoading}
             >
-              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : (isSignUp ? 'Criar Conta' : 'Entrar')}
-            </Button>
-            <Button 
-              type="button" 
-              variant="ghost" 
-              className="w-full"
-              onClick={() => setIsSignUp(!isSignUp)}
-            >
-              {isSignUp ? 'Já tem uma conta? Entre aqui' : 'Não tem conta? Cadastre sua loja'}
+              {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Entrar'}
             </Button>
           </CardFooter>
         </form>
