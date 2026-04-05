@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -154,14 +155,14 @@ export default function InventoryApp() {
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full bg-white min-h-screen flex flex-col relative">
-        <header className="bg-white px-6 md:px-12 pt-10 pb-6 border-b flex justify-between items-start">
+        <header className="bg-[#81C784] px-6 md:px-12 pt-10 pb-6 border-b border-[#6db371] flex justify-between items-start shadow-sm">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Gestão de Vendas e Lucro</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-white">Outlet Multimarcas Poranga</h1>
+            <p className="text-sm md:text-base text-white/90">Gestão de Vendas e Lucro</p>
           </div>
           <button 
             onClick={handleLogout}
-            className="p-2 text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 font-medium"
+            className="p-2 text-white hover:text-white/80 transition-colors flex items-center gap-2 font-medium"
             title="Sair"
           >
             <span className="hidden md:inline">Sair do Sistema</span>
