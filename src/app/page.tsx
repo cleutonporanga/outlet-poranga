@@ -15,6 +15,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { 
   useUser, 
   useFirestore, 
+  useAuth,
   useCollection, 
   useMemoFirebase,
   initiateAnonymousSignIn,
@@ -29,6 +30,7 @@ import { collection, doc, query, orderBy } from "firebase/firestore";
 function InventoryAppContent() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
+  const auth = useAuth();
   const { toast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,11 +52,10 @@ function InventoryAppContent() {
 
   // Auto-login if not authenticated
   useEffect(() => {
-    if (!isUserLoading && !user && db) {
-      const { getAuth } = require('firebase/auth');
-      initiateAnonymousSignIn(getAuth());
+    if (!isUserLoading && !user && auth) {
+      initiateAnonymousSignIn(auth);
     }
-  }, [user, isUserLoading, db]);
+  }, [user, isUserLoading, auth]);
 
   const handleSaveProduct = (formData: Partial<Product>) => {
     if (!user || !db) return;
