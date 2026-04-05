@@ -9,7 +9,7 @@ import { InventoryTab } from "@/components/inventory/inventory-tab";
 import { MovementsTab } from "@/components/inventory/movements-tab";
 import { ReportsTab } from "@/components/inventory/reports-tab";
 import { Product, Movement, InventoryStats } from "@/lib/inventory-types";
-import { Plus, Loader2, LogOut } from "lucide-react";
+import { Plus, Loader2, LogOut, LayoutDashboard, Package, ShoppingCart, BarChart3 } from "lucide-react";
 import { ProductModal } from "@/components/inventory/product-modal";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -172,10 +172,22 @@ export default function InventoryApp() {
 
         <Tabs defaultValue="inicio" className="flex-1 flex flex-col">
           <TabsList className="w-full justify-start md:justify-center overflow-x-auto bg-white border-b rounded-none p-0 h-auto hide-scrollbar sticky top-0 z-40 px-6 md:px-12">
-            <TabsTrigger value="inicio" className="top-tab-trigger min-w-[100px] md:px-12">Início</TabsTrigger>
-            <TabsTrigger value="estoque" className="top-tab-trigger min-w-[100px] md:px-12">Estoque</TabsTrigger>
-            <TabsTrigger value="vendas" className="top-tab-trigger min-w-[100px] md:px-12">Vendas</TabsTrigger>
-            <TabsTrigger value="relatorios" className="top-tab-trigger min-w-[110px] md:px-12">Relatórios</TabsTrigger>
+            <TabsTrigger value="inicio" className="top-tab-trigger min-w-[120px] md:px-10 flex items-center gap-2">
+              <LayoutDashboard size={18} />
+              Início
+            </TabsTrigger>
+            <TabsTrigger value="estoque" className="top-tab-trigger min-w-[120px] md:px-10 flex items-center gap-2">
+              <Package size={18} />
+              Estoque
+            </TabsTrigger>
+            <TabsTrigger value="vendas" className="top-tab-trigger min-w-[120px] md:px-10 flex items-center gap-2">
+              <ShoppingCart size={18} />
+              Vendas
+            </TabsTrigger>
+            <TabsTrigger value="relatorios" className="top-tab-trigger min-w-[130px] md:px-10 flex items-center gap-2">
+              <BarChart3 size={18} />
+              Relatórios
+            </TabsTrigger>
           </TabsList>
 
           <div className="flex-1 p-6 md:p-12">
