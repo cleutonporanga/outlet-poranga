@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -36,22 +35,22 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
   });
 
   return (
-    <div className="space-y-6">
-      <div className="sticky top-[60px] md:top-[64px] bg-white z-30 py-4 space-y-4 border-b -mx-4 px-4 md:-mx-8 md:px-8">
-        <div className="max-w-xl mx-auto md:mx-0 w-full relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+    <div className="space-y-8">
+      <div className="sticky top-[60px] md:top-[64px] bg-white z-30 py-6 space-y-6 border-b -mx-6 px-6 md:-mx-12 md:px-12">
+        <div className="max-w-2xl w-full relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
           <Input 
-            className="pl-10 h-12 bg-slate-50 shadow-sm border-none rounded-xl"
+            className="pl-12 h-14 bg-slate-50 shadow-sm border-none rounded-2xl text-lg"
             placeholder="Buscar por nome ou categoria..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
           <Badge 
             variant={!filterCategory ? "default" : "outline"} 
-            className="cursor-pointer whitespace-nowrap px-6 py-2 rounded-full text-sm transition-all"
+            className="cursor-pointer whitespace-nowrap px-8 py-2.5 rounded-full text-sm font-bold transition-all uppercase tracking-wider"
             onClick={() => setFilterCategory(null)}
           >
             Todos os Itens
@@ -60,7 +59,7 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
             <Badge 
               key={cat}
               variant={filterCategory === cat ? "default" : "outline"}
-              className="cursor-pointer whitespace-nowrap px-6 py-2 rounded-full text-sm transition-all"
+              className="cursor-pointer whitespace-nowrap px-8 py-2.5 rounded-full text-sm font-bold transition-all uppercase tracking-wider"
               onClick={() => setFilterCategory(cat)}
             >
               {cat}
@@ -69,15 +68,16 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* Grid Fluido com auto-fit */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6 md:gap-8">
         {filteredProducts.length === 0 ? (
-          <div className="col-span-full text-center py-20 text-muted-foreground">
-            <Package className="mx-auto mb-4 opacity-10" size={64} />
-            <p className="text-lg">Nenhum produto encontrado nesta busca.</p>
+          <div className="col-span-full text-center py-32 text-muted-foreground">
+            <Package className="mx-auto mb-6 opacity-10" size={80} />
+            <p className="text-xl font-medium">Nenhum produto encontrado.</p>
           </div>
         ) : (
           filteredProducts.map(product => (
-            <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden hover:shadow-xl transition-all duration-300 group">
+            <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden hover:shadow-2xl transition-all duration-300 group rounded-2xl">
               <CardContent className="p-0 flex flex-col">
                 <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
                   {product.imageUrl ? (
@@ -85,63 +85,63 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
                       src={product.imageUrl} 
                       alt={product.name} 
                       fill 
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="object-cover group-hover:scale-110 transition-transform duration-700"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                      <ImageIcon size={48} />
+                      <ImageIcon size={56} />
                     </div>
                   )}
                   {product.quantity < 5 && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-lg">
-                      <AlertCircle size={12} /> ESTOQUE BAIXO
+                    <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-1.5 rounded-full text-[10px] font-black flex items-center gap-1.5 shadow-xl z-10">
+                      <AlertCircle size={14} /> ESTOQUE BAIXO
                     </div>
                   )}
                 </div>
                 
-                <div className="p-5 space-y-4">
+                <div className="p-6 space-y-5">
                   <div className="flex justify-between items-start">
-                    <div className="space-y-1">
-                      <h3 className="font-bold text-lg leading-tight line-clamp-2 min-h-[3.5rem]">{product.name}</h3>
-                      <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">{product.category}</p>
+                    <div className="space-y-1.5 flex-1 min-w-0 pr-2">
+                      <h3 className="font-bold text-xl leading-tight line-clamp-2 min-h-[3.5rem]">{product.name}</h3>
+                      <p className="text-xs text-muted-foreground uppercase tracking-[0.15em] font-bold">{product.category}</p>
                     </div>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-2 text-muted-foreground hover:bg-slate-100 rounded-full transition-colors">
-                          <MoreVertical size={20} />
+                        <button className="p-2 text-muted-foreground hover:bg-slate-100 rounded-full transition-colors flex-shrink-0">
+                          <MoreVertical size={24} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 p-2 rounded-xl">
-                        <DropdownMenuItem onClick={() => onSell(product.id)} className="text-accent font-bold h-10 cursor-pointer">
-                          <ShoppingBag size={16} className="mr-2" /> Registrar Venda
+                      <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl">
+                        <DropdownMenuItem onClick={() => onSell(product.id)} className="text-accent font-black h-12 cursor-pointer rounded-xl">
+                          <ShoppingBag size={18} className="mr-3" /> Registrar Venda
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(product)} className="h-10 cursor-pointer">
-                          <Edit2 size={16} className="mr-2" /> Editar Produto
+                        <DropdownMenuItem onClick={() => onEdit(product)} className="h-12 cursor-pointer font-medium rounded-xl">
+                          <Edit2 size={18} className="mr-3" /> Editar Produto
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive h-10 cursor-pointer" onClick={() => onDelete(product.id)}>
-                          <Trash2 size={16} className="mr-2" /> Excluir do Sistema
+                        <DropdownMenuItem className="text-destructive font-medium h-12 cursor-pointer rounded-xl" onClick={() => onDelete(product.id)}>
+                          <Trash2 size={18} className="mr-3" /> Excluir do Sistema
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Badge variant="secondary" className="px-3 py-1 rounded-lg">Tam: {product.size}</Badge>
-                    <Badge variant="secondary" className="px-3 py-1 rounded-lg">Cor: {product.color}</Badge>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="px-4 py-1.5 rounded-xl text-xs font-bold">TAM: {product.size}</Badge>
+                    <Badge variant="secondary" className="px-4 py-1.5 rounded-xl text-xs font-bold">COR: {product.color}</Badge>
                   </div>
 
-                  <div className="pt-4 border-t flex justify-between items-center">
+                  <div className="pt-6 border-t flex justify-between items-center">
                     <div>
-                      <span className={`text-xs font-bold uppercase tracking-widest ${product.quantity < 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                        Qtd Disponível
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${product.quantity < 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        Estoque
                       </span>
                       <p className={`text-2xl font-black ${product.quantity < 5 ? 'text-red-600' : 'text-foreground'}`}>
                         {product.quantity}
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Preço Un.</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Preço Un.</span>
                       <p className="text-2xl font-black text-accent">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
                       </p>

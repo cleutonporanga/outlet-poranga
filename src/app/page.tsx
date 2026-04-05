@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -43,7 +42,7 @@ export default function InventoryApp() {
     }
   }, [user, isUserLoading, router]);
 
-  // Memoize Firestore references for products and movements
+  // Memoize Firestore references
   const productsRef = useMemoFirebase(() => {
     if (!db || !user) return null;
     return query(collection(db, 'users', user.uid, 'products'), orderBy('createdAt', 'desc'));
@@ -153,9 +152,9 @@ export default function InventoryApp() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-12">
-      <div className="max-w-[1200px] mx-auto bg-white min-h-screen shadow-xl md:my-0 flex flex-col relative">
-        <header className="bg-white px-6 md:px-10 pt-10 pb-6 border-b flex justify-between items-start">
+    <div className="min-h-screen bg-background">
+      <div className="w-full bg-white min-h-screen flex flex-col relative">
+        <header className="bg-white px-6 md:px-12 pt-10 pb-6 border-b flex justify-between items-start">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
             <p className="text-sm md:text-base text-muted-foreground">Gestão de Vendas e Lucro</p>
@@ -171,14 +170,14 @@ export default function InventoryApp() {
         </header>
 
         <Tabs defaultValue="inicio" className="flex-1 flex flex-col">
-          <TabsList className="w-full justify-start md:justify-center overflow-x-auto bg-white border-b rounded-none p-0 h-auto hide-scrollbar sticky top-0 z-40 px-4 md:px-0">
-            <TabsTrigger value="inicio" className="top-tab-trigger min-w-[100px] md:px-8">Início</TabsTrigger>
-            <TabsTrigger value="estoque" className="top-tab-trigger min-w-[100px] md:px-8">Estoque</TabsTrigger>
-            <TabsTrigger value="vendas" className="top-tab-trigger min-w-[100px] md:px-8">Vendas</TabsTrigger>
-            <TabsTrigger value="relatorios" className="top-tab-trigger min-w-[110px] md:px-8">Relatórios</TabsTrigger>
+          <TabsList className="w-full justify-start md:justify-center overflow-x-auto bg-white border-b rounded-none p-0 h-auto hide-scrollbar sticky top-0 z-40 px-6 md:px-12">
+            <TabsTrigger value="inicio" className="top-tab-trigger min-w-[100px] md:px-12">Início</TabsTrigger>
+            <TabsTrigger value="estoque" className="top-tab-trigger min-w-[100px] md:px-12">Estoque</TabsTrigger>
+            <TabsTrigger value="vendas" className="top-tab-trigger min-w-[100px] md:px-12">Vendas</TabsTrigger>
+            <TabsTrigger value="relatorios" className="top-tab-trigger min-w-[110px] md:px-12">Relatórios</TabsTrigger>
           </TabsList>
 
-          <div className="flex-1 p-4 md:p-8">
+          <div className="flex-1 p-6 md:p-12">
             <TabsContent value="inicio" className="m-0 focus-visible:ring-0">
               <DashboardTab stats={stats} products={products || []} />
             </TabsContent>
