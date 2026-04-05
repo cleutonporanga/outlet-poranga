@@ -127,6 +127,20 @@ export default function InventoryApp() {
     }
   };
 
+  // Show loading spinner while checking auth state
+  if (isUserLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-accent" />
+      </div>
+    );
+  }
+
+  // Prevent flash of content if user is not authenticated and redirect is pending
+  if (!user) {
+    return null;
+  }
+
   const salesOnly = (movements || []).filter(m => m.type === 'saída');
   
   const stats: InventoryStats = {
