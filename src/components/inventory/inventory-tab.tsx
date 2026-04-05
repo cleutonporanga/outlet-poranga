@@ -5,13 +5,14 @@ import { Product } from "@/lib/inventory-types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, MoreVertical, Edit2, Trash2, AlertCircle } from "lucide-react";
+import { Search, Filter, MoreVertical, Edit2, Trash2, AlertCircle, Image as ImageIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Image from 'next/image';
 
 interface InventoryTabProps {
   products: Product[];
@@ -75,27 +76,42 @@ export function InventoryTab({ products, onEdit, onDelete }: InventoryTabProps) 
         ) : (
           filteredProducts.map(product => (
             <Card key={product.id} className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-base leading-tight">{product.name}</h3>
-                      {product.quantity < 5 && (
-                        <AlertCircle size={14} className="text-red-500" />
-                      )}
+              <CardContent className="p-0 flex">
+                <div className="relative w-24 h-32 bg-muted shrink-0">
+                  {product.imageUrl ? (
+                    <Image 
+                      src={product.imageUrl} 
+                      alt={product.name} 
+                      fill 
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+                      <ImageIcon size={24} />
                     </div>
-                    <p className="text-xs text-muted-foreground">{product.category}</p>
-                    
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant="secondary" className="text-[10px] font-medium h-5">Tam: {product.size}</Badge>
-                      <Badge variant="secondary" className="text-[10px] font-medium h-5">Cor: {product.color}</Badge>
+                  )}
+                </div>
+                
+                <div className="flex-1 p-4 flex flex-col justify-between">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-base leading-tight line-clamp-1">{product.name}</h3>
+                        {product.quantity < 5 && (
+                          <AlertCircle size={14} className="text-red-500" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">{product.category}</p>
+                      
+                      <div className="flex gap-2 mt-2">
+                        <Badge variant="secondary" className="text-[10px] font-medium h-5">Tam: {product.size}</Badge>
+                        <Badge variant="secondary" className="text-[10px] font-medium h-5">Cor: {product.color}</Badge>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="text-right flex flex-col items-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-1 text-muted-foreground hover:bg-muted rounded-md mb-2">
+                        <button className="p-1 text-muted-foreground hover:bg-muted rounded-md">
                           <MoreVertical size={18} />
                         </button>
                       </DropdownMenuTrigger>
@@ -108,12 +124,14 @@ export function InventoryTab({ products, onEdit, onDelete }: InventoryTabProps) 
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    
+                  </div>
+                  
+                  <div className="flex justify-between items-end mt-2">
+                    <span className={`text-xs font-semibold ${product.quantity < 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                      Qtd: {product.quantity}
+                    </span>
                     <span className="text-sm font-bold text-accent">
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
-                    </span>
-                    <span className={`text-xs font-semibold mt-1 ${product.quantity < 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                      Qtd: {product.quantity}
                     </span>
                   </div>
                 </div>

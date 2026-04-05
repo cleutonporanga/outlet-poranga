@@ -12,6 +12,7 @@ export type Product = {
   quantity: number;
   price: number;
   description?: string;
+  imageUrl?: string;
   createdAt: string;
 };
 
