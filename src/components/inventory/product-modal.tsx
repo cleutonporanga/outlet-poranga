@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -262,9 +261,9 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="sku">Código do Produto (SKU)</Label>
+              <Label htmlFor="sku">Cód. SKU</Label>
               <Input 
                 id="sku" 
                 placeholder="Ex: SKU-001"
