@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -5,7 +6,7 @@ import { Product } from "@/lib/inventory-types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, MoreVertical, Edit2, Trash2, AlertCircle, ShoppingBag, Image as ImageIcon } from "lucide-react";
+import { Search, MoreVertical, Edit2, Trash2, AlertCircle, ShoppingBag, Image as ImageIcon, Package } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,13 +36,13 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
   });
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="sticky top-0 bg-background z-10 py-2 space-y-3">
-        <div className="relative">
+    <div className="space-y-6">
+      <div className="sticky top-[60px] md:top-[64px] bg-white z-30 py-4 space-y-4 border-b -mx-4 px-4 md:-mx-8 md:px-8">
+        <div className="max-w-xl mx-auto md:mx-0 w-full relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
           <Input 
-            className="pl-10 h-12 bg-white shadow-sm border-none rounded-xl"
-            placeholder="Buscar produtos..." 
+            className="pl-10 h-12 bg-slate-50 shadow-sm border-none rounded-xl"
+            placeholder="Buscar por nome ou categoria..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -50,16 +51,16 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
         <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
           <Badge 
             variant={!filterCategory ? "default" : "outline"} 
-            className="cursor-pointer whitespace-nowrap px-4 py-1.5 rounded-full"
+            className="cursor-pointer whitespace-nowrap px-6 py-2 rounded-full text-sm transition-all"
             onClick={() => setFilterCategory(null)}
           >
-            Todos
+            Todos os Itens
           </Badge>
           {categories.map(cat => (
             <Badge 
               key={cat}
               variant={filterCategory === cat ? "default" : "outline"}
-              className="cursor-pointer whitespace-nowrap px-4 py-1.5 rounded-full"
+              className="cursor-pointer whitespace-nowrap px-6 py-2 rounded-full text-sm transition-all"
               onClick={() => setFilterCategory(cat)}
             >
               {cat}
@@ -68,75 +69,83 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-10 text-muted-foreground">
-            <Package className="mx-auto mb-2 opacity-20" size={48} />
-            <p>Nenhum produto encontrado.</p>
+          <div className="col-span-full text-center py-20 text-muted-foreground">
+            <Package className="mx-auto mb-4 opacity-10" size={64} />
+            <p className="text-lg">Nenhum produto encontrado nesta busca.</p>
           </div>
         ) : (
           filteredProducts.map(product => (
-            <Card key={product.id} className="border-none shadow-sm bg-white overflow-hidden hover:shadow-md transition-shadow">
-              <CardContent className="p-0 flex">
-                <div className="relative w-24 h-32 bg-muted shrink-0">
+            <Card key={product.id} className="border-none shadow-md bg-white overflow-hidden hover:shadow-xl transition-all duration-300 group">
+              <CardContent className="p-0 flex flex-col">
+                <div className="relative w-full aspect-[4/3] bg-slate-100 overflow-hidden">
                   {product.imageUrl ? (
                     <Image 
                       src={product.imageUrl} 
                       alt={product.name} 
                       fill 
-                      className="object-cover"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
-                      <ImageIcon size={24} />
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
+                      <ImageIcon size={48} />
+                    </div>
+                  )}
+                  {product.quantity < 5 && (
+                    <div className="absolute top-3 left-3 bg-red-500 text-white px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-lg">
+                      <AlertCircle size={12} /> ESTOQUE BAIXO
                     </div>
                   )}
                 </div>
                 
-                <div className="flex-1 p-4 flex flex-col justify-between">
+                <div className="p-5 space-y-4">
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-semibold text-base leading-tight line-clamp-1">{product.name}</h3>
-                        {product.quantity < 5 && (
-                          <AlertCircle size={14} className="text-red-500" />
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground">{product.category}</p>
-                      
-                      <div className="flex gap-2 mt-2">
-                        <Badge variant="secondary" className="text-[10px] font-medium h-5">Tam: {product.size}</Badge>
-                        <Badge variant="secondary" className="text-[10px] font-medium h-5">Cor: {product.color}</Badge>
-                      </div>
+                      <h3 className="font-bold text-lg leading-tight line-clamp-2 min-h-[3.5rem]">{product.name}</h3>
+                      <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">{product.category}</p>
                     </div>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button className="p-1 text-muted-foreground hover:bg-muted rounded-md">
-                          <MoreVertical size={18} />
+                        <button className="p-2 text-muted-foreground hover:bg-slate-100 rounded-full transition-colors">
+                          <MoreVertical size={20} />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onSell(product.id)} className="text-accent font-bold">
-                          <ShoppingBag size={14} className="mr-2" /> Vender
+                      <DropdownMenuContent align="end" className="w-48 p-2 rounded-xl">
+                        <DropdownMenuItem onClick={() => onSell(product.id)} className="text-accent font-bold h-10 cursor-pointer">
+                          <ShoppingBag size={16} className="mr-2" /> Registrar Venda
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(product)}>
-                          <Edit2 size={14} className="mr-2" /> Editar
+                        <DropdownMenuItem onClick={() => onEdit(product)} className="h-10 cursor-pointer">
+                          <Edit2 size={16} className="mr-2" /> Editar Produto
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={() => onDelete(product.id)}>
-                          <Trash2 size={14} className="mr-2" /> Excluir
+                        <DropdownMenuItem className="text-destructive h-10 cursor-pointer" onClick={() => onDelete(product.id)}>
+                          <Trash2 size={16} className="mr-2" /> Excluir do Sistema
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
                   
-                  <div className="flex justify-between items-end mt-2">
-                    <span className={`text-xs font-semibold ${product.quantity < 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
-                      Qtd: {product.quantity}
-                    </span>
-                    <span className="text-sm font-bold text-accent">
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
-                    </span>
+                  <div className="flex gap-2">
+                    <Badge variant="secondary" className="px-3 py-1 rounded-lg">Tam: {product.size}</Badge>
+                    <Badge variant="secondary" className="px-3 py-1 rounded-lg">Cor: {product.color}</Badge>
+                  </div>
+
+                  <div className="pt-4 border-t flex justify-between items-center">
+                    <div>
+                      <span className={`text-xs font-bold uppercase tracking-widest ${product.quantity < 5 ? 'text-red-500' : 'text-muted-foreground'}`}>
+                        Qtd Disponível
+                      </span>
+                      <p className={`text-2xl font-black ${product.quantity < 5 ? 'text-red-600' : 'text-foreground'}`}>
+                        {product.quantity}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Preço Un.</span>
+                      <p className="text-2xl font-black text-accent">
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.price)}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -145,28 +154,5 @@ export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTa
         )}
       </div>
     </div>
-  );
-}
-
-// Utility icon
-function Package(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M16.5 9.4 7.5 4.21" />
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.29 7 12 12 20.71 7" />
-      <line x1="12" y1="22" x2="12" y2="12" />
-    </svg>
   );
 }

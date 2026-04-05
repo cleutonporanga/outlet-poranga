@@ -62,7 +62,6 @@ export default function InventoryApp() {
 
     const productsCollection = collection(db, 'users', user.uid, 'products');
     
-    // Ensure numeric values are valid numbers
     const cleanData = {
       ...formData,
       quantity: Number(formData.quantity) || 0,
@@ -134,7 +133,7 @@ export default function InventoryApp() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || (!user && isUserLoading)) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-10 w-10 animate-spin text-accent" />
@@ -142,9 +141,7 @@ export default function InventoryApp() {
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   const salesOnly = (movements || []).filter(m => m.type === 'saída');
   
@@ -156,64 +153,67 @@ export default function InventoryApp() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-background overflow-hidden relative shadow-2xl">
-      <header className="bg-white px-6 pt-8 pb-4 border-b flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
-          <p className="text-sm text-muted-foreground">Gestão de Vendas e Lucro</p>
-        </div>
+    <div className="min-h-screen bg-background pb-12">
+      <div className="max-w-[1200px] mx-auto bg-white min-h-screen shadow-xl md:my-0 flex flex-col relative">
+        <header className="bg-white px-6 md:px-10 pt-10 pb-6 border-b flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Gestão de Vendas e Lucro</p>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="p-2 text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2 font-medium"
+            title="Sair"
+          >
+            <span className="hidden md:inline">Sair do Sistema</span>
+            <LogOut size={20} />
+          </button>
+        </header>
+
+        <Tabs defaultValue="inicio" className="flex-1 flex flex-col">
+          <TabsList className="w-full justify-start md:justify-center overflow-x-auto bg-white border-b rounded-none p-0 h-auto hide-scrollbar sticky top-0 z-40 px-4 md:px-0">
+            <TabsTrigger value="inicio" className="top-tab-trigger min-w-[100px] md:px-8">Início</TabsTrigger>
+            <TabsTrigger value="estoque" className="top-tab-trigger min-w-[100px] md:px-8">Estoque</TabsTrigger>
+            <TabsTrigger value="vendas" className="top-tab-trigger min-w-[100px] md:px-8">Vendas</TabsTrigger>
+            <TabsTrigger value="relatorios" className="top-tab-trigger min-w-[110px] md:px-8">Relatórios</TabsTrigger>
+          </TabsList>
+
+          <div className="flex-1 p-4 md:p-8">
+            <TabsContent value="inicio" className="m-0 focus-visible:ring-0">
+              <DashboardTab stats={stats} products={products || []} />
+            </TabsContent>
+            <TabsContent value="estoque" className="m-0 focus-visible:ring-0">
+              <InventoryTab 
+                products={products || []} 
+                onEdit={(p) => { setEditingProduct(p); setIsModalOpen(true); }} 
+                onDelete={handleDeleteProduct} 
+                onSell={handleSellProduct}
+              />
+            </TabsContent>
+            <TabsContent value="vendas" className="m-0 focus-visible:ring-0">
+              <MovementsTab movements={salesOnly} />
+            </TabsContent>
+            <TabsContent value="relatorios" className="m-0 focus-visible:ring-0">
+              <ReportsTab stats={stats} products={products || []} />
+            </TabsContent>
+          </div>
+        </Tabs>
+
         <button 
-          onClick={handleLogout}
-          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
-          title="Sair"
+          className="fab" 
+          onClick={() => { setEditingProduct(undefined); setIsModalOpen(true); }}
+          aria-label="Adicionar Produto"
         >
-          <LogOut size={20} />
+          <Plus size={28} />
         </button>
-      </header>
 
-      <Tabs defaultValue="inicio" className="flex-1 flex flex-col">
-        <TabsList className="w-full justify-start overflow-x-auto bg-white border-b rounded-none p-0 h-auto hide-scrollbar sticky top-0 z-40">
-          <TabsTrigger value="inicio" className="top-tab-trigger min-w-[100px]">Início</TabsTrigger>
-          <TabsTrigger value="estoque" className="top-tab-trigger min-w-[100px]">Estoque</TabsTrigger>
-          <TabsTrigger value="vendas" className="top-tab-trigger min-w-[100px]">Vendas</TabsTrigger>
-          <TabsTrigger value="relatorios" className="top-tab-trigger min-w-[110px]">Relatórios</TabsTrigger>
-        </TabsList>
-
-        <div className="flex-1 overflow-y-auto pb-24">
-          <TabsContent value="inicio" className="m-0 focus-visible:ring-0">
-            <DashboardTab stats={stats} products={products || []} />
-          </TabsContent>
-          <TabsContent value="estoque" className="m-0 focus-visible:ring-0">
-            <InventoryTab 
-              products={products || []} 
-              onEdit={(p) => { setEditingProduct(p); setIsModalOpen(true); }} 
-              onDelete={handleDeleteProduct} 
-              onSell={handleSellProduct}
-            />
-          </TabsContent>
-          <TabsContent value="vendas" className="m-0 focus-visible:ring-0">
-            <MovementsTab movements={salesOnly} />
-          </TabsContent>
-          <TabsContent value="relatorios" className="m-0 focus-visible:ring-0">
-            <ReportsTab stats={stats} products={products || []} />
-          </TabsContent>
-        </div>
-      </Tabs>
-
-      <button 
-        className="fab" 
-        onClick={() => { setEditingProduct(undefined); setIsModalOpen(true); }}
-        aria-label="Adicionar Produto"
-      >
-        <Plus size={28} />
-      </button>
-
-      <ProductModal 
-        isOpen={isModalOpen} 
-        onClose={() => { setIsModalOpen(false); setEditingProduct(undefined); }} 
-        onSave={handleSaveProduct}
-        editingProduct={editingProduct}
-      />
+        <ProductModal 
+          isOpen={isModalOpen} 
+          onClose={() => { setIsModalOpen(false); setEditingProduct(undefined); }} 
+          onSave={handleSaveProduct}
+          editingProduct={editingProduct}
+        />
+      </div>
       <Toaster />
     </div>
   );
