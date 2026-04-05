@@ -155,7 +155,7 @@ export default function InventoryApp() {
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full bg-white min-h-screen flex flex-col relative">
-        <header className="bg-[#81C784] px-6 md:px-12 pt-10 pb-6 border-b border-[#6db371] flex justify-between items-start shadow-sm">
+        <header className="bg-accent px-6 md:px-12 pt-10 pb-6 border-b border-accent/20 flex justify-between items-start shadow-sm">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white">Outlet Multimarcas Poranga</h1>
             <p className="text-sm md:text-base text-white/90">Gestão de Vendas e Lucro</p>
