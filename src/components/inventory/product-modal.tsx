@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -19,9 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Product } from "@/lib/inventory-types";
-import { Sparkles, Loader2, Camera, X, Image as ImageIcon } from "lucide-react";
+import { Sparkles, Loader2, Camera, X, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { generateProductDescription } from "@/ai/flows/generate-product-description-flow";
 import Image from 'next/image';
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -33,6 +35,7 @@ interface ProductModalProps {
 const SIZES = ["PP", "P", "M", "G", "GG", "38", "40", "42", "44", "46"];
 
 export function ProductModal({ isOpen, onClose, onSave, editingProduct }: ProductModalProps) {
+  const { toast } = useToast();
   const [formData, setFormData] = useState<Partial<Product>>({
     name: '',
     category: '',
@@ -46,6 +49,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -64,11 +68,19 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
         imageUrl: '',
       });
     }
+    setImageError(null);
   }, [editingProduct, isOpen]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check file size (max 800KB to be safe with Firestore 1MB limit)
+      if (file.size > 800000) {
+        setImageError("A imagem é muito grande. Escolha uma foto menor que 800KB.");
+        return;
+      }
+
+      setImageError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
@@ -78,6 +90,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
   };
 
   const handleGenerateAI = async () => {
+    if (isGenerating) return;
     setIsGenerating(true);
     try {
       const result = await generateProductDescription({
@@ -90,12 +103,17 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
       
       setFormData(prev => ({ 
         ...prev, 
-        name: prev.name || result.suggestedName || prev.name,
-        category: prev.category || result.suggestedCategory || prev.category,
-        color: prev.color || result.suggestedColor || prev.color,
+        name: result.suggestedName || prev.name,
+        category: result.suggestedCategory || prev.category,
+        color: result.suggestedColor || prev.color,
       }));
+      toast({ title: "Sugestões aplicadas", description: "O assistente preencheu os campos com base na foto." });
     } catch (error) {
-      console.error("AI Generation failed", error);
+      toast({ 
+        title: "Falha na IA", 
+        description: "Não foi possível gerar sugestões no momento.",
+        variant: "destructive" 
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -103,6 +121,17 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Basic validation
+    if (!formData.name || !formData.category) {
+      toast({ 
+        title: "Campos obrigatórios", 
+        description: "Por favor, preencha o nome e a categoria.",
+        variant: "destructive" 
+      });
+      return;
+    }
+
     onSave(formData);
   };
 
@@ -134,7 +163,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
               )}
             </div>
             <div 
-              className="relative w-full aspect-video rounded-xl border-2 border-dashed border-muted flex flex-col items-center justify-center bg-white cursor-pointer overflow-hidden group"
+              className={`relative w-full aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center bg-white cursor-pointer overflow-hidden group transition-colors ${imageError ? 'border-destructive' : 'border-muted'}`}
               onClick={() => fileInputRef.current?.click()}
             >
               {formData.imageUrl ? (
@@ -177,10 +206,15 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 onChange={handleImageUpload} 
               />
             </div>
+            {imageError && (
+              <p className="text-[10px] text-destructive flex items-center gap-1 mt-1">
+                <AlertCircle size={10} /> {imageError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Nome do Produto</Label>
+            <Label htmlFor="name">Nome do Produto *</Label>
             <Input 
               id="name" 
               required
@@ -192,11 +226,11 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Categoria</Label>
+              <Label htmlFor="category">Categoria *</Label>
               <Input 
                 id="category" 
                 required
-                placeholder="Ex: Camisetas, Calças..."
+                placeholder="Ex: Camisetas"
                 className="rounded-xl h-12 border-none shadow-sm bg-white"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -251,6 +285,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 id="costPrice" 
                 type="number" 
                 step="0.01"
+                min="0"
                 required
                 className="rounded-xl h-12 border-none shadow-sm bg-white"
                 value={formData.costPrice}
@@ -263,6 +298,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 id="price" 
                 type="number" 
                 step="0.01"
+                min="0"
                 required
                 className="rounded-xl h-12 border-none shadow-sm bg-white"
                 value={formData.price}

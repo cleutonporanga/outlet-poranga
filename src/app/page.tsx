@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -61,10 +62,18 @@ export default function InventoryApp() {
 
     const productsCollection = collection(db, 'users', user.uid, 'products');
     
+    // Ensure numeric values are valid numbers
+    const cleanData = {
+      ...formData,
+      quantity: Number(formData.quantity) || 0,
+      price: Number(formData.price) || 0,
+      costPrice: Number(formData.costPrice) || 0,
+    };
+
     if (editingProduct) {
       const docRef = doc(productsCollection, editingProduct.id);
       updateDocumentNonBlocking(docRef, {
-        ...formData,
+        ...cleanData,
         updatedAt: new Date().toISOString()
       });
       toast({ title: "Atualizado", description: "O produto foi atualizado com sucesso." });
@@ -72,16 +81,14 @@ export default function InventoryApp() {
       const newId = Math.random().toString(36).substr(2, 9);
       const docRef = doc(productsCollection, newId);
       setDocumentNonBlocking(docRef, {
-        ...formData,
+        ...cleanData,
         id: newId,
         createdAt: new Date().toISOString(),
-        quantity: formData.quantity || 0,
-        price: formData.price || 0,
-        costPrice: formData.costPrice || 0,
       }, { merge: true });
       toast({ title: "Sucesso!", description: "Produto adicionado ao inventário." });
     }
     setIsModalOpen(false);
+    setEditingProduct(undefined);
   };
 
   const handleDeleteProduct = (id: string) => {
@@ -127,7 +134,6 @@ export default function InventoryApp() {
     }
   };
 
-  // Show loading spinner while checking auth state
   if (isUserLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -136,7 +142,6 @@ export default function InventoryApp() {
     );
   }
 
-  // Prevent flash of content if user is not authenticated and redirect is pending
   if (!user) {
     return null;
   }
@@ -146,8 +151,8 @@ export default function InventoryApp() {
   const stats: InventoryStats = {
     totalProducts: (products || []).reduce((acc, p) => acc + (Number(p.quantity) || 0), 0),
     lowStockCount: (products || []).filter(p => p.quantity < 5).length,
-    totalInventoryValue: (products || []).reduce((acc, p) => acc + ((p.price || 0) * (p.quantity || 0)), 0),
-    totalProfit: salesOnly.reduce((acc, m) => acc + (((m.unitPrice || 0) - (m.unitCost || 0)) * (m.quantity || 0)), 0),
+    totalInventoryValue: (products || []).reduce((acc, p) => acc + ((Number(p.price) || 0) * (Number(p.quantity) || 0)), 0),
+    totalProfit: salesOnly.reduce((acc, m) => acc + (((Number(m.unitPrice) || 0) - (Number(m.unitCost) || 0)) * (Number(m.quantity) || 0)), 0),
   };
 
   return (
