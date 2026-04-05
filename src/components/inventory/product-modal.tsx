@@ -33,7 +33,7 @@ interface ProductModalProps {
 }
 
 const SIZES = ["PP", "P", "M", "G", "GG", "38", "40", "42", "44", "46"];
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB permitido para seleção, mas será comprimido
 
 export function ProductModal({ isOpen, onClose, onSave, editingProduct }: ProductModalProps) {
   const { toast } = useToast();
@@ -50,6 +50,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
   });
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,17 +76,56 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (max 10MB as requested)
       if (file.size > MAX_FILE_SIZE) {
         setImageError("A imagem é muito grande. Escolha uma foto menor que 10MB.");
         return;
       }
 
+      setIsProcessingImage(true);
       setImageError(null);
+      
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setFormData(prev => ({ ...prev, imageUrl: result }));
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          // Manter proporção
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Comprimir como JPEG com qualidade 0.7 para garantir que caiba no Firestore
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+          setFormData(prev => ({ ...prev, imageUrl: dataUrl }));
+          setIsProcessingImage(false);
+        };
+        img.onerror = () => {
+          setImageError("Erro ao carregar imagem.");
+          setIsProcessingImage(false);
+        };
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => {
+        setImageError("Erro ao ler arquivo.");
+        setIsProcessingImage(false);
       };
       reader.readAsDataURL(file);
     }
@@ -124,7 +164,6 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!formData.name || !formData.category) {
       toast({ 
         title: "Campos obrigatórios", 
@@ -156,7 +195,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                   variant="ghost" 
                   size="sm" 
                   className="h-8 text-accent gap-1 font-bold p-0 px-2"
-                  disabled={isGenerating}
+                  disabled={isGenerating || isProcessingImage}
                   onClick={handleGenerateAI}
                 >
                   {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
@@ -166,15 +205,21 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
             </div>
             <div 
               className={`relative w-full aspect-video rounded-xl border-2 border-dashed flex flex-col items-center justify-center bg-white cursor-pointer overflow-hidden group transition-colors ${imageError ? 'border-destructive' : 'border-muted'}`}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => !isProcessingImage && fileInputRef.current?.click()}
             >
-              {formData.imageUrl ? (
+              {isProcessingImage ? (
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="animate-spin text-accent" size={24} />
+                  <p className="text-xs text-muted-foreground">Otimizando...</p>
+                </div>
+              ) : formData.imageUrl ? (
                 <>
                   <Image 
                     src={formData.imageUrl} 
                     alt="Preview" 
                     fill 
                     className="object-cover"
+                    unoptimized
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Camera className="text-white" size={32} />
@@ -213,7 +258,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 <AlertCircle size={10} /> {imageError}
               </p>
             )}
-            <p className="text-[10px] text-muted-foreground">Limite máximo: 10MB</p>
+            <p className="text-[10px] text-muted-foreground">Otimização automática ativada (máx 10MB)</p>
           </div>
 
           <div className="space-y-2">
@@ -311,7 +356,11 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
           </div>
 
           <DialogFooter className="pt-4 gap-2 sm:flex-col">
-            <Button type="submit" className="h-12 w-full rounded-xl font-bold bg-accent hover:bg-accent/90 text-white">
+            <Button 
+              type="submit" 
+              className="h-12 w-full rounded-xl font-bold bg-accent hover:bg-accent/90 text-white"
+              disabled={isProcessingImage}
+            >
               {editingProduct ? 'Salvar Alterações' : 'Adicionar Produto'}
             </Button>
             <Button type="button" variant="ghost" onClick={onClose} className="h-12 w-full rounded-xl">
