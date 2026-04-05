@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'ModaEstoque Pro',
+  title: 'Outlet Multimarcas Poranga',
   description: 'Controle de inventário moderno para lojas de roupas',
 };
 

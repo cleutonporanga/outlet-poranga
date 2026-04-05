@@ -113,7 +113,7 @@ export default function InventoryApp() {
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-background overflow-hidden relative shadow-2xl">
       <header className="bg-white px-6 pt-8 pb-4 border-b">
-        <h1 className="text-2xl font-bold text-primary">ModaEstoque Pro</h1>
+        <h1 className="text-2xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
         <p className="text-sm text-muted-foreground">Gestão de Vendas e Lucro</p>
       </header>
 
