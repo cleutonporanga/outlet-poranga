@@ -5,7 +5,7 @@ import { Product } from "@/lib/inventory-types";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, MoreVertical, Edit2, Trash2, AlertCircle, Image as ImageIcon } from "lucide-react";
+import { Search, Filter, MoreVertical, Edit2, Trash2, AlertCircle, ShoppingBag, Image as ImageIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,10 @@ interface InventoryTabProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
+  onSell: (id: string) => void;
 }
 
-export function InventoryTab({ products, onEdit, onDelete }: InventoryTabProps) {
+export function InventoryTab({ products, onEdit, onDelete, onSell }: InventoryTabProps) {
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
 
@@ -116,6 +117,9 @@ export function InventoryTab({ products, onEdit, onDelete }: InventoryTabProps) 
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onSell(product.id)} className="text-accent font-bold">
+                          <ShoppingBag size={14} className="mr-2" /> Vender
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onEdit(product)}>
                           <Edit2 size={14} className="mr-2" /> Editar
                         </DropdownMenuItem>

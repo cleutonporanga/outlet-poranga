@@ -66,6 +66,41 @@ export default function InventoryApp() {
     });
   };
 
+  const handleSellProduct = (id: string) => {
+    const product = products.find(p => p.id === id);
+    if (!product || product.quantity <= 0) {
+      toast({
+        title: "Sem Estoque",
+        description: "Não é possível vender um produto sem estoque.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Reduzir estoque
+    setProducts(products.map(p => 
+      p.id === id ? { ...p, quantity: p.quantity - 1 } : p
+    ));
+
+    // Registrar venda
+    const newMovement: Movement = {
+      id: Math.random().toString(36).substr(2, 9),
+      productId: product.id,
+      productName: product.name,
+      type: 'saída',
+      quantity: 1,
+      date: new Date().toISOString(),
+      unitPrice: product.price,
+      unitCost: product.costPrice,
+    };
+    setMovements([newMovement, ...movements]);
+
+    toast({
+      title: "Venda Registrada!",
+      description: `1x ${product.name} vendida com sucesso.`,
+    });
+  };
+
   const salesOnly = movements.filter(m => m.type === 'saída');
   
   const stats: InventoryStats = {
@@ -99,6 +134,7 @@ export default function InventoryApp() {
               products={products} 
               onEdit={(p) => { setEditingProduct(p); setIsModalOpen(true); }} 
               onDelete={handleDeleteProduct} 
+              onSell={handleSellProduct}
             />
           </TabsContent>
           <TabsContent value="vendas" className="m-0 focus-visible:ring-0">
