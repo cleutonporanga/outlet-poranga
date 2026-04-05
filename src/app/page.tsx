@@ -1,14 +1,14 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DashboardTab } from "@/components/inventory/dashboard-tab";
 import { InventoryTab } from "@/components/inventory/inventory-tab";
 import { MovementsTab } from "@/components/inventory/movements-tab";
 import { ReportsTab } from "@/components/inventory/reports-tab";
 import { Product, Movement, InventoryStats } from "@/lib/inventory-types";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, LogOut } from "lucide-react";
 import { ProductModal } from "@/components/inventory/product-modal";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,23 +18,29 @@ import {
   useAuth,
   useCollection, 
   useMemoFirebase,
-  initiateAnonymousSignIn,
-  addDocumentNonBlocking,
   setDocumentNonBlocking,
   updateDocumentNonBlocking,
-  deleteDocumentNonBlocking,
-  FirebaseClientProvider
+  deleteDocumentNonBlocking
 } from "@/firebase";
 import { collection, doc, query, orderBy } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 
-function InventoryAppContent() {
+export default function InventoryApp() {
   const { user, isUserLoading } = useUser();
   const db = useFirestore();
   const auth = useAuth();
+  const router = useRouter();
   const { toast } = useToast();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+
+  // Protected route logic
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   // Memoize Firestore references for products and movements
   const productsRef = useMemoFirebase(() => {
@@ -49,13 +55,6 @@ function InventoryAppContent() {
 
   const { data: products = [], isLoading: isProductsLoading } = useCollection<Product>(productsRef);
   const { data: movements = [], isLoading: isMovementsLoading } = useCollection<Movement>(movementsRef);
-
-  // Auto-login if not authenticated
-  useEffect(() => {
-    if (!isUserLoading && !user && auth) {
-      initiateAnonymousSignIn(auth);
-    }
-  }, [user, isUserLoading, auth]);
 
   const handleSaveProduct = (formData: Partial<Product>) => {
     if (!user || !db) return;
@@ -99,11 +98,9 @@ function InventoryAppContent() {
       return;
     }
 
-    // Update stock
     const productRef = doc(db, 'users', user.uid, 'products', id);
     updateDocumentNonBlocking(productRef, { quantity: product.quantity - 1 });
 
-    // Register movement
     const movementsCollection = collection(db, 'users', user.uid, 'movements');
     const movementId = Math.random().toString(36).substr(2, 9);
     const movementRef = doc(movementsCollection, movementId);
@@ -122,12 +119,20 @@ function InventoryAppContent() {
     toast({ title: "Venda Registrada!", description: `1x ${product.name} vendida com sucesso.` });
   };
 
+  const handleLogout = () => {
+    if (auth) {
+      signOut(auth).then(() => {
+        router.push('/login');
+      });
+    }
+  };
+
   if (isUserLoading || !user) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
           <Loader2 className="h-10 w-10 animate-spin text-accent mx-auto" />
-          <p className="text-muted-foreground font-medium">Carregando sua loja...</p>
+          <p className="text-muted-foreground font-medium">Autenticando...</p>
         </div>
       </div>
     );
@@ -144,9 +149,18 @@ function InventoryAppContent() {
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-background overflow-hidden relative shadow-2xl">
-      <header className="bg-white px-6 pt-8 pb-4 border-b">
-        <h1 className="text-2xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
-        <p className="text-sm text-muted-foreground">Gestão de Vendas e Lucro</p>
+      <header className="bg-white px-6 pt-8 pb-4 border-b flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Outlet Multimarcas Poranga</h1>
+          <p className="text-sm text-muted-foreground">Gestão de Vendas e Lucro</p>
+        </div>
+        <button 
+          onClick={handleLogout}
+          className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+          title="Sair"
+        >
+          <LogOut size={20} />
+        </button>
       </header>
 
       <Tabs defaultValue="inicio" className="flex-1 flex flex-col">
@@ -194,13 +208,5 @@ function InventoryAppContent() {
       />
       <Toaster />
     </div>
-  );
-}
-
-export default function InventoryApp() {
-  return (
-    <FirebaseClientProvider>
-      <InventoryAppContent />
-    </FirebaseClientProvider>
   );
 }
