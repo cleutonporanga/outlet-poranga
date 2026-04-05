@@ -1,6 +1,6 @@
 {
   "name": "Outlet Multimarcas Poranga",
-  "short_name": "Outlet Poranga",
+  "short_name": "Poranga Outlet",
   "description": "Controle de inventário moderno para lojas de roupas",
   "start_url": "/",
   "display": "standalone",
@@ -8,16 +8,14 @@
   "theme_color": "#3a4a3a",
   "icons": [
     {
-      "src": "https://picsum.photos/seed/outlet192/192/192",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "https://picsum.photos/seed/outlet512/512/512",
+      "src": "/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ]
 }
