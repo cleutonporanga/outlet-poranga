@@ -1,231 +1,52 @@
+
 {
   "entities": {
     "Product": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Product",
+      "description": "Representa um item de vestuário no estoque da outlet.",
       "type": "object",
-      "description": "Represents a generic product in the inventory, without specific variations.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Product entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the product (e.g., 'Camiseta Básica')."
-        },
-        "description": {
-          "type": "string",
-          "description": "A detailed description of the product, potentially AI-generated for attractiveness."
-        },
-        "category": {
-          "type": "string",
-          "description": "The category the product belongs to (e.g., 'Camisetas', 'Calças', 'Acessórios')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the product record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the product record was last updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "size": { "type": "string" },
+        "color": { "type": "string" },
+        "quantity": { "type": "number" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "imageUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "category",
-        "createdAt",
-        "updatedAt"
-      ]
+      "required": ["id", "name", "category", "quantity", "price", "costPrice"]
     },
-    "ProductVariant": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProductVariant",
+    "Movement": {
+      "title": "Movement",
+      "description": "Registro de uma venda realizada.",
       "type": "object",
-      "description": "Represents a specific variation of a product based on size and color, each with its own stock and price.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProductVariant entity."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to the parent Product. (Relationship: Product 1:N ProductVariant)"
-        },
-        "size": {
-          "type": "string",
-          "description": "The size of this product variant (e.g., 'P', 'M', 'G', 'XL')."
-        },
-        "color": {
-          "type": "string",
-          "description": "The color of this product variant (e.g., 'Azul', 'Branco', 'Preto')."
-        },
-        "quantity": {
-          "type": "number",
-          "description": "The current stock quantity available for this specific product variant."
-        },
-        "price": {
-          "type": "number",
-          "description": "The selling price for this specific product variant."
-        },
-        "alertThreshold": {
-          "type": "number",
-          "description": "The quantity threshold below which this product variant is considered 'low stock' (e.g., 5)."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the product variant record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the product variant record was last updated.",
-          "format": "date-time"
-        }
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "type": { "type": "string", "enum": ["entrada", "saída"] },
+        "quantity": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "unitCost": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "productId",
-        "size",
-        "color",
-        "quantity",
-        "price",
-        "alertThreshold",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
-    "StockMovement": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "StockMovement",
-      "type": "object",
-      "description": "Records all incoming (entrada) and outgoing (saída) stock movements for product variants.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the StockMovement entity."
-        },
-        "productVariantId": {
-          "type": "string",
-          "description": "Reference to the specific ProductVariant involved in this movement. (Relationship: ProductVariant 1:N StockMovement)"
-        },
-        "type": {
-          "type": "string",
-          "description": "The type of stock movement, either 'entrada' (incoming) or 'saida' (outgoing)."
-        },
-        "quantityChange": {
-          "type": "number",
-          "description": "The absolute quantity of items that moved during this transaction (e.g., 10 for an entry of 10 items)."
-        },
-        "movementDate": {
-          "type": "string",
-          "description": "The date and time when the stock movement occurred.",
-          "format": "date-time"
-        },
-        "description": {
-          "type": "string",
-          "description": "An optional description explaining the reason for the stock movement (e.g., 'Compra de fornecedor', 'Venda na loja')."
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the stock movement record was created.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "productVariantId",
-        "type",
-        "quantityChange",
-        "movementDate",
-        "createdAt"
-      ]
+      "required": ["id", "productId", "type", "quantity", "date"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["anonymous", "password"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores generic product information, representing a product line within a specific user's inventory. Authorization is strictly path-based, meaning only the user identified by '{userId}' can access their products.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user (Firebase Authentication UID) who owns this inventory data."
-            },
-            {
-              "name": "productId",
-              "description": "The unique identifier for the Product entity."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/products/{productId}/variants/{variantId}",
-        "definition": {
-          "entityName": "ProductVariant",
-          "schema": {
-            "$ref": "#/backend/entities/ProductVariant"
-          },
-          "description": "Stores specific variations (size, color, stock, price) for a product belonging to a specific user. Nested under a Product, it maintains a strong hierarchical relationship. Authorization is inherited from the parent path, ensuring only the '{userId}' owner can access these variants.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user (Firebase Authentication UID) who owns this inventory data."
-            },
-            {
-              "name": "productId",
-              "description": "The unique identifier of the parent Product."
-            },
-            {
-              "name": "variantId",
-              "description": "The unique identifier for the ProductVariant entity."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/products/{productId}/variants/{variantId}/movements/{movementId}",
-        "definition": {
-          "entityName": "StockMovement",
-          "schema": {
-            "$ref": "#/backend/entities/StockMovement"
-          },
-          "description": "Records all stock adjustments (incoming/outgoing) for a specific product variant, owned by a specific user. Nested under a ProductVariant, it provides a detailed history. Authorization is strictly path-based, ensuring only the '{userId}' owner can access these movement records.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user (Firebase Authentication UID) who owns this inventory data."
-            },
-            {
-              "name": "productId",
-              "description": "The unique identifier of the parent Product."
-            },
-            {
-              "name": "variantId",
-              "description": "The unique identifier of the parent ProductVariant."
-            },
-            {
-              "name": "movementId",
-              "description": "The unique identifier for the StockMovement entity."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The recommended Firestore structure is based on a strict hierarchical model, starting with a user's unique ID as the top-level collection. This approach ensures robust authorization independence and enables secure, efficient queries (QAPs) by leveraging path-based ownership.\n\n**Authorization Independence:** All inventory data (Products, ProductVariants, StockMovements) for a given user is nested directly under `/users/{userId}`. This is crucial for Authorization Independence because security rules can enforce ownership by simply checking `request.auth.uid == userId` (where `userId` is a path wildcard) for *all* documents within that user's subtree. This eliminates the need for `get()` calls in security rules, as access is determined solely by the authenticated user's ID matching the path segment, making rules atomic, simple, and highly performant. The `productId` in `ProductVariant` and `productVariantId` in `StockMovement` are maintained in their respective documents primarily for data integrity, queryability, and explicit relational modeling, not for authorization, which is handled by the parent path.\n\n**Secure Querying (QAPs):** The hierarchical structure inherently supports Query-Anchored Permissions (QAPs). When a user requests a list of their products, variants, or movements, the query must specify their `userId` in the path (e.g., `/users/{request.auth.uid}/products`). Firestore security rules can then easily ensure that `request.auth.uid` matches the `userId` in the path, guaranteeing that users can only list their own data. This prevents unauthorized data exposure in list operations and allows for effective index utilization.\n\n**Structural Segregation:** All documents within a user's inventory subtree (`/users/{userId}/...`) share the same security posture: they are private to that specific user. There is no mixing of public and private data within the same collections, which significantly simplifies security rules and makes their intent explicit.\n\n**DBAC (Database-Backed Access Control):** The model relies purely on `request.auth.uid` and path-based ownership for authorization. No custom claims are required, as roles are implicitly handled by the user's direct ownership of their data subtree. If additional roles were introduced (e.g., 'admin' for *all* stores), they would be managed via dedicated collections (e.g., `/roles_admin/{uid}`) for existence checks, but this is not necessary for the current application scope.\n\n**Predictability and Clarity:** Semantic naming conventions are used for paths (`users`, `products`, `variants`, `movements`) and wildcards (`{userId}`, `{productId}`, etc.), making the data structure intuitive and debuggable."
+    "/users/{userId}/products/{productId}": {
+      "schema": { "$ref": "#/backend/entities/Product" },
+      "description": "Produtos do inventário privado do usuário."
+    },
+    "/users/{userId}/movements/{movementId}": {
+      "schema": { "$ref": "#/backend/entities/Movement" },
+      "description": "Histórico de vendas e lucros do usuário."
+    }
   }
 }

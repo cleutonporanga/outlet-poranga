@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -7,107 +8,137 @@ import { InventoryTab } from "@/components/inventory/inventory-tab";
 import { MovementsTab } from "@/components/inventory/movements-tab";
 import { ReportsTab } from "@/components/inventory/reports-tab";
 import { Product, Movement, InventoryStats } from "@/lib/inventory-types";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { ProductModal } from "@/components/inventory/product-modal";
 import { useToast } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { 
+  useUser, 
+  useFirestore, 
+  useCollection, 
+  useMemoFirebase,
+  initiateAnonymousSignIn,
+  addDocumentNonBlocking,
+  setDocumentNonBlocking,
+  updateDocumentNonBlocking,
+  deleteDocumentNonBlocking,
+  FirebaseClientProvider
+} from "@/firebase";
+import { collection, doc, query, orderBy } from "firebase/firestore";
 
-const MOCK_PRODUCTS: Product[] = [
-  { id: '1', name: 'Camiseta Basic Oversized', category: 'Camisetas', size: 'G', color: 'Preto', quantity: 12, price: 89.90, costPrice: 35.00, createdAt: new Date().toISOString() },
-  { id: '2', name: 'Calça Jeans Slim', category: 'Calças', size: '42', color: 'Azul', quantity: 3, price: 159.00, costPrice: 70.00, createdAt: new Date().toISOString() },
-  { id: '3', name: 'Vestido Midi Floral', category: 'Vestidos', size: 'M', color: 'Verde', quantity: 8, price: 199.90, costPrice: 85.00, createdAt: new Date().toISOString() },
-  { id: '4', name: 'Jaqueta Puffer', category: 'Casacos', size: 'P', color: 'Bege', quantity: 2, price: 299.00, costPrice: 120.00, createdAt: new Date().toISOString() },
-];
-
-const MOCK_MOVEMENTS: Movement[] = [
-  { id: 'm1', productId: '1', productName: 'Camiseta Basic Oversized', type: 'saída', quantity: 2, date: new Date().toISOString(), unitPrice: 89.90, unitCost: 35.00 },
-  { id: 'm2', productId: '2', productName: 'Calça Jeans Slim', type: 'saída', quantity: 1, date: new Date().toISOString(), unitPrice: 159.00, unitCost: 70.00 },
-];
-
-export default function InventoryApp() {
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
-  const [movements, setMovements] = useState<Movement[]>(MOCK_MOVEMENTS);
+function InventoryAppContent() {
+  const { user, isUserLoading } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
-  const { toast } = useToast();
 
-  const handleAddProduct = (newProduct: Omit<Product, 'id' | 'createdAt'>) => {
-    const product: Product = {
-      ...newProduct,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString()
-    };
-    setProducts([...products, product]);
-    
-    toast({
-      title: "Sucesso!",
-      description: "Produto adicionado ao inventário.",
-    });
-  };
+  // Memoize Firestore references for products and movements
+  const productsRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'users', user.uid, 'products'), orderBy('createdAt', 'desc'));
+  }, [db, user]);
 
-  const handleUpdateProduct = (updatedFields: Partial<Product>) => {
-    if (!editingProduct) return;
+  const movementsRef = useMemoFirebase(() => {
+    if (!db || !user) return null;
+    return query(collection(db, 'users', user.uid, 'movements'), orderBy('date', 'desc'));
+  }, [db, user]);
+
+  const { data: products = [], isLoading: isProductsLoading } = useCollection<Product>(productsRef);
+  const { data: movements = [], isLoading: isMovementsLoading } = useCollection<Movement>(movementsRef);
+
+  // Auto-login if not authenticated
+  useEffect(() => {
+    if (!isUserLoading && !user && db) {
+      const { getAuth } = require('firebase/auth');
+      initiateAnonymousSignIn(getAuth());
+    }
+  }, [user, isUserLoading, db]);
+
+  const handleSaveProduct = (formData: Partial<Product>) => {
+    if (!user || !db) return;
+
+    const productsCollection = collection(db, 'users', user.uid, 'products');
     
-    setProducts(products.map(p => p.id === editingProduct.id ? { ...p, ...updatedFields } : p));
-    
-    toast({
-      title: "Atualizado",
-      description: "O produto foi atualizado com sucesso.",
-    });
-    setEditingProduct(undefined);
+    if (editingProduct) {
+      const docRef = doc(productsCollection, editingProduct.id);
+      updateDocumentNonBlocking(docRef, {
+        ...formData,
+        updatedAt: new Date().toISOString()
+      });
+      toast({ title: "Atualizado", description: "O produto foi atualizado com sucesso." });
+    } else {
+      const newId = Math.random().toString(36).substr(2, 9);
+      const docRef = doc(productsCollection, newId);
+      setDocumentNonBlocking(docRef, {
+        ...formData,
+        id: newId,
+        createdAt: new Date().toISOString(),
+        quantity: formData.quantity || 0,
+        price: formData.price || 0,
+        costPrice: formData.costPrice || 0,
+      }, { merge: true });
+      toast({ title: "Sucesso!", description: "Produto adicionado ao inventário." });
+    }
+    setIsModalOpen(false);
   };
 
   const handleDeleteProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
-    toast({
-      title: "Excluído",
-      description: "Produto removido do sistema.",
-      variant: "destructive",
-    });
+    if (!user || !db) return;
+    const docRef = doc(db, 'users', user.uid, 'products', id);
+    deleteDocumentNonBlocking(docRef);
+    toast({ title: "Excluído", description: "Produto removido do sistema.", variant: "destructive" });
   };
 
   const handleSellProduct = (id: string) => {
-    const product = products.find(p => p.id === id);
-    if (!product || product.quantity <= 0) {
-      toast({
-        title: "Sem Estoque",
-        description: "Não é possível vender um produto sem estoque.",
-        variant: "destructive",
-      });
+    const product = products?.find(p => p.id === id);
+    if (!product || product.quantity <= 0 || !user || !db) {
+      toast({ title: "Sem Estoque", description: "Não é possível vender um produto sem estoque.", variant: "destructive" });
       return;
     }
 
-    // Reduzir estoque
-    setProducts(products.map(p => 
-      p.id === id ? { ...p, quantity: p.quantity - 1 } : p
-    ));
+    // Update stock
+    const productRef = doc(db, 'users', user.uid, 'products', id);
+    updateDocumentNonBlocking(productRef, { quantity: product.quantity - 1 });
 
-    // Registrar venda
-    const newMovement: Movement = {
-      id: Math.random().toString(36).substr(2, 9),
+    // Register movement
+    const movementsCollection = collection(db, 'users', user.uid, 'movements');
+    const movementId = Math.random().toString(36).substr(2, 9);
+    const movementRef = doc(movementsCollection, movementId);
+    
+    setDocumentNonBlocking(movementRef, {
+      id: movementId,
       productId: product.id,
       productName: product.name,
-      type: 'saída',
+      type: 'saída' as const,
       quantity: 1,
       date: new Date().toISOString(),
       unitPrice: product.price,
       unitCost: product.costPrice,
-    };
-    setMovements([newMovement, ...movements]);
+    }, { merge: true });
 
-    toast({
-      title: "Venda Registrada!",
-      description: `1x ${product.name} vendida com sucesso.`,
-    });
+    toast({ title: "Venda Registrada!", description: `1x ${product.name} vendida com sucesso.` });
   };
 
-  const salesOnly = movements.filter(m => m.type === 'saída');
+  if (isUserLoading || !user) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-10 w-10 animate-spin text-accent mx-auto" />
+          <p className="text-muted-foreground font-medium">Carregando sua loja...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const salesOnly = (movements || []).filter(m => m.type === 'saída');
   
   const stats: InventoryStats = {
-    totalProducts: products.reduce((acc, p) => acc + p.quantity, 0),
-    lowStockCount: products.filter(p => p.quantity < 5).length,
-    totalInventoryValue: products.reduce((acc, p) => acc + (p.price * p.quantity), 0),
-    totalProfit: salesOnly.reduce((acc, m) => acc + ((m.unitPrice - m.unitCost) * m.quantity), 0),
+    totalProducts: (products || []).reduce((acc, p) => acc + (Number(p.quantity) || 0), 0),
+    lowStockCount: (products || []).filter(p => p.quantity < 5).length,
+    totalInventoryValue: (products || []).reduce((acc, p) => acc + ((p.price || 0) * (p.quantity || 0)), 0),
+    totalProfit: salesOnly.reduce((acc, m) => acc + (((m.unitPrice || 0) - (m.unitCost || 0)) * (m.quantity || 0)), 0),
   };
 
   return (
@@ -127,11 +158,11 @@ export default function InventoryApp() {
 
         <div className="flex-1 overflow-y-auto pb-24">
           <TabsContent value="inicio" className="m-0 focus-visible:ring-0">
-            <DashboardTab stats={stats} products={products} />
+            <DashboardTab stats={stats} products={products || []} />
           </TabsContent>
           <TabsContent value="estoque" className="m-0 focus-visible:ring-0">
             <InventoryTab 
-              products={products} 
+              products={products || []} 
               onEdit={(p) => { setEditingProduct(p); setIsModalOpen(true); }} 
               onDelete={handleDeleteProduct} 
               onSell={handleSellProduct}
@@ -141,7 +172,7 @@ export default function InventoryApp() {
             <MovementsTab movements={salesOnly} />
           </TabsContent>
           <TabsContent value="relatorios" className="m-0 focus-visible:ring-0">
-            <ReportsTab stats={stats} products={products} />
+            <ReportsTab stats={stats} products={products || []} />
           </TabsContent>
         </div>
       </Tabs>
@@ -157,17 +188,18 @@ export default function InventoryApp() {
       <ProductModal 
         isOpen={isModalOpen} 
         onClose={() => { setIsModalOpen(false); setEditingProduct(undefined); }} 
-        onSave={(data) => {
-          if (editingProduct) {
-            handleUpdateProduct(data);
-          } else {
-            handleAddProduct(data as Omit<Product, 'id' | 'createdAt'>);
-          }
-          setIsModalOpen(false);
-        }}
+        onSave={handleSaveProduct}
         editingProduct={editingProduct}
       />
       <Toaster />
     </div>
+  );
+}
+
+export default function InventoryApp() {
+  return (
+    <FirebaseClientProvider>
+      <InventoryAppContent />
+    </FirebaseClientProvider>
   );
 }

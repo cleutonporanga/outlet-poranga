@@ -1,100 +1,23 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    /**
-     * FIRESTORE SECURITY RULES - PROTOTYPING MODE
-     * 
-     * CORE PHILOSOPHY:
-     * This ruleset enforces a strict user-ownership model using a hierarchical data structure. 
-     * All inventory data is anchored to a specific user's UID in the document path.
-     * 
-     * DATA STRUCTURE:
-     * The database follows a nested hierarchy: /users/{userId}/products/{productId}/variants/{variantId}/movements/{movementId}.
-     * This structure ensures that authorization is inherently path-based.
-     * 
-     * KEY SECURITY DECISIONS:
-     * 1. Path-Based Ownership: Authorization is determined by verifying that the 'userId' segment 
-     *    in the path matches the authenticated user's UID (request.auth.uid).
-     * 2. Performance: This model avoids expensive 'get()' calls for authorization by relying on 
-     *    the hierarchy and denormalized relational IDs.
-     * 3. Privacy: All data is private by default. There are no public collections or user listing capabilities.
-     * 4. Structural Segregation: Each user's data tree is completely isolated from others.
-     * 
-     * DENORMALIZATION FOR AUTHORIZATION:
-     * While authorization is path-based, critical relational IDs (like productId and variantId) 
-     * are validated during document creation to ensure consistency between the path and the data.
-     */
-
-    // --- HELPER FUNCTIONS ---
-
-    /** Checks if the request is from an authenticated user. */
     function isSignedIn() {
       return request.auth != null;
     }
-
-    /** Checks if the authenticated user matches the provided userId from the path. */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** Verifies ownership and ensures the document exists for destructive/update operations. */
-    function isExistingOwner(userId) {
-      return resource != null && isOwner(userId);
-    }
-
-    // --- COLLECTION RULES ---
-
-    /**
-     * @description Rules for the root user document. Allows users to manage their own profile.
-     * @path /users/{userId}
-     * @allow (get) If the user is the owner of the document.
-     * @deny (list) Listing users is strictly forbidden for security.
-     * @principle Ownership (Pattern 1) and Self-Creation (Pattern 4).
-     */
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId);
-      allow update, delete: if isExistingOwner(userId);
-
-      /**
-       * @description Rules for generic products within a user's inventory.
-       * @path /users/{userId}/products/{productId}
-       * @allow (create) If the authenticated user matches {userId} and provides a matching ID in data.
-       * @deny (update) If the user attempts to modify a product they do not own.
-       * @principle Path-based ownership. Relational integrity for document ID.
-       */
+      
       match /products/{productId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.id == productId;
-        allow update, delete: if isExistingOwner(userId);
-
-        /**
-         * @description Rules for specific product variations (size, color, price).
-         * @path /users/{userId}/products/{productId}/variants/{variantId}
-         * @allow (list) If the user owns the parent user tree.
-         * @deny (create) If the parent 'productId' in the data does not match the path.
-         * @principle Inherited ownership through path segments.
-         */
-        match /variants/{variantId} {
-          allow get, list: if isOwner(userId);
-          allow create: if isOwner(userId) && request.resource.data.id == variantId && request.resource.data.productId == productId;
-          allow update, delete: if isExistingOwner(userId);
-
-          /**
-           * @description Records of stock adjustments (history) for a specific variant.
-           * @path /users/{userId}/products/{productId}/variants/{variantId}/movements/{movementId}
-           * @allow (get) If the user owns the entire hierarchy above this record.
-           * @deny (delete) If the user is not authenticated or the UID is mismatched.
-           * @principle Strict hierarchical access control.
-           */
-          match /movements/{movementId} {
-            allow get, list: if isOwner(userId);
-            allow create: if isOwner(userId) && request.resource.data.id == movementId && request.resource.data.productVariantId == variantId;
-            allow update, delete: if isExistingOwner(userId);
-          }
-        }
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /movements/{movementId} {
+        allow read, write: if isOwner(userId);
       }
     }
   }
