@@ -33,6 +33,7 @@ interface ProductModalProps {
 }
 
 const SIZES = ["PP", "P", "M", "G", "GG", "38", "40", "42", "44", "46"];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 export function ProductModal({ isOpen, onClose, onSave, editingProduct }: ProductModalProps) {
   const { toast } = useToast();
@@ -74,16 +75,17 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (max 800KB to be safe with Firestore 1MB limit)
-      if (file.size > 800000) {
-        setImageError("A imagem é muito grande. Escolha uma foto menor que 800KB.");
+      // Check file size (max 10MB as requested)
+      if (file.size > MAX_FILE_SIZE) {
+        setImageError("A imagem é muito grande. Escolha uma foto menor que 10MB.");
         return;
       }
 
       setImageError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, imageUrl: reader.result as string }));
+        const result = reader.result as string;
+        setFormData(prev => ({ ...prev, imageUrl: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -211,6 +213,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                 <AlertCircle size={10} /> {imageError}
               </p>
             )}
+            <p className="text-[10px] text-muted-foreground">Limite máximo: 10MB</p>
           </div>
 
           <div className="space-y-2">
