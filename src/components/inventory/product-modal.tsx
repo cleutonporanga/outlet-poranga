@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -118,7 +118,22 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
         
         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
-            <Label>Foto do Produto</Label>
+            <div className="flex justify-between items-center mb-1">
+              <Label>Foto do Produto</Label>
+              {formData.imageUrl && (
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 text-accent gap-1 font-bold p-0 px-2"
+                  disabled={isGenerating}
+                  onClick={handleGenerateDescription}
+                >
+                  {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  Analisar Foto
+                </Button>
+              )}
+            </div>
             <div 
               className="relative w-full aspect-video rounded-xl border-2 border-dashed border-muted flex flex-col items-center justify-center bg-white cursor-pointer overflow-hidden group"
               onClick={() => fileInputRef.current?.click()}
@@ -245,31 +260,6 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
               className="rounded-xl h-12 border-none shadow-sm bg-white"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center mb-1">
-              <Label htmlFor="description">Descrição</Label>
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 text-accent gap-1 font-semibold"
-                disabled={isGenerating}
-                onClick={handleGenerateDescription}
-              >
-                {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                {formData.imageUrl ? 'Analisar Foto' : 'Gerar com IA'}
-              </Button>
-            </div>
-            <Textarea 
-              id="description" 
-              rows={3}
-              placeholder="Descreva o produto..."
-              className="rounded-xl border-none shadow-sm bg-white resize-none"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
 
