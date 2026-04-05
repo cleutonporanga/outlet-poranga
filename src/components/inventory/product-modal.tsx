@@ -30,7 +30,6 @@ interface ProductModalProps {
   editingProduct?: Product;
 }
 
-const CATEGORIES = ["Camisetas", "Calças", "Vestidos", "Casacos", "Acessórios", "Sapatos", "Intima"];
 const SIZES = ["PP", "P", "M", "G", "GG", "38", "40", "42", "44", "46"];
 
 export function ProductModal({ isOpen, onClose, onSave, editingProduct }: ProductModalProps) {
@@ -194,19 +193,14 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="category">Categoria</Label>
-              <Select 
-                value={formData.category} 
-                onValueChange={(v) => setFormData({ ...formData, category: v })}
-              >
-                <SelectTrigger className="rounded-xl h-12 border-none shadow-sm bg-white">
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input 
+                id="category" 
+                required
+                placeholder="Ex: Camisetas, Calças..."
+                className="rounded-xl h-12 border-none shadow-sm bg-white"
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="size">Tamanho</Label>
