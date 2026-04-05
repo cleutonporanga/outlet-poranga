@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -42,6 +41,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
     color: '',
     quantity: 0,
     price: 0,
+    costPrice: 0,
     description: '',
     imageUrl: '',
   });
@@ -60,6 +60,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
         color: '',
         quantity: 0,
         price: 0,
+        costPrice: 0,
         description: '',
         imageUrl: '',
       });
@@ -77,7 +78,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
     }
   };
 
-  const handleGenerateDescription = async () => {
+  const handleGenerateAI = async () => {
     setIsGenerating(true);
     try {
       const result = await generateProductDescription({
@@ -90,7 +91,6 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
       
       setFormData(prev => ({ 
         ...prev, 
-        description: result.description,
         name: prev.name || result.suggestedName || prev.name,
         category: prev.category || result.suggestedCategory || prev.category,
         color: prev.color || result.suggestedColor || prev.color,
@@ -127,10 +127,10 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
                   size="sm" 
                   className="h-8 text-accent gap-1 font-bold p-0 px-2"
                   disabled={isGenerating}
-                  onClick={handleGenerateDescription}
+                  onClick={handleGenerateAI}
                 >
                   {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-                  Analisar Foto
+                  Sugerir Dados
                 </Button>
               )}
             </div>
@@ -237,7 +237,7 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quantity">Quantidade</Label>
+              <Label htmlFor="quantity">Estoque Inicial</Label>
               <Input 
                 id="quantity" 
                 type="number"
@@ -250,21 +250,35 @@ export function ProductModal({ isOpen, onClose, onSave, editingProduct }: Produc
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price">Preço Unitário (R$)</Label>
-            <Input 
-              id="price" 
-              type="number" 
-              step="0.01"
-              required
-              className="rounded-xl h-12 border-none shadow-sm bg-white"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="costPrice">Preço de Custo (R$)</Label>
+              <Input 
+                id="costPrice" 
+                type="number" 
+                step="0.01"
+                required
+                className="rounded-xl h-12 border-none shadow-sm bg-white"
+                value={formData.costPrice}
+                onChange={(e) => setFormData({ ...formData, costPrice: parseFloat(e.target.value) || 0 })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="price">Preço de Venda (R$)</Label>
+              <Input 
+                id="price" 
+                type="number" 
+                step="0.01"
+                required
+                className="rounded-xl h-12 border-none shadow-sm bg-white"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+              />
+            </div>
           </div>
 
           <DialogFooter className="pt-4 gap-2 sm:flex-col">
-            <Button type="submit" className="h-12 w-full rounded-xl font-bold bg-accent hover:bg-accent/90">
+            <Button type="submit" className="h-12 w-full rounded-xl font-bold bg-accent hover:bg-accent/90 text-white">
               {editingProduct ? 'Salvar Alterações' : 'Adicionar Produto'}
             </Button>
             <Button type="button" variant="ghost" onClick={onClose} className="h-12 w-full rounded-xl">

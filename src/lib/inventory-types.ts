@@ -11,6 +11,7 @@ export type Product = {
   color: string;
   quantity: number;
   price: number;
+  costPrice: number;
   description?: string;
   imageUrl?: string;
   createdAt: string;
@@ -25,10 +26,13 @@ export type Movement = {
   type: MovementType;
   quantity: number;
   date: string;
+  unitPrice: number;
+  unitCost: number;
 };
 
 export type InventoryStats = {
   totalProducts: number;
   lowStockCount: number;
   totalInventoryValue: number;
+  totalProfit: number;
 };
