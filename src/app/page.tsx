@@ -60,10 +60,28 @@ export default function InventoryApp() {
   const handleSaveProduct = (formData: Partial<Product>) => {
     if (!user || !db) return;
 
+    // SKU Unique validation
+    if (formData.sku) {
+      const duplicate = (products || []).find(p => 
+        p.sku?.toLowerCase().trim() === formData.sku?.toLowerCase().trim() && 
+        p.id !== editingProduct?.id
+      );
+      
+      if (duplicate) {
+        toast({ 
+          title: "Código Duplicado", 
+          description: `O código "${formData.sku}" já está em uso pelo produto "${duplicate.name}".`, 
+          variant: "destructive" 
+        });
+        return;
+      }
+    }
+
     const productsCollection = collection(db, 'users', user.uid, 'products');
     
     const cleanData = {
       ...formData,
+      sku: formData.sku?.trim(),
       quantity: Number(formData.quantity) || 0,
       price: Number(formData.price) || 0,
       costPrice: Number(formData.costPrice) || 0,
