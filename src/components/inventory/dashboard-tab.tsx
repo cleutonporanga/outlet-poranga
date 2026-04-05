@@ -78,7 +78,7 @@ export function DashboardTab({ stats, products }: DashboardTabProps) {
               <div className="p-2 bg-slate-50 text-slate-600 rounded-lg">
                 <DollarSign size={20} />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">Valor Estimado em Estoque</span>
+              <span className="text-xs font-medium text-muted-foreground">Valor Total em Estoque</span>
             </div>
             <div className="text-xl font-semibold text-slate-700">
               {formatCurrency(stats.totalInventoryValue)}
